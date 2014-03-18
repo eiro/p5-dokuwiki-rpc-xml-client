@@ -3,7 +3,7 @@ package Dokuwiki::RPC::XML::Client;
 use strict;
 use warnings;
 use parent 'RPC::XML::Client';
-our $VERSION = '0.0';
+our $VERSION = '0.1';
 our %API = qw<
 getPagelist dokuwiki.getPagelist
 getVersion dokuwiki.getVersion
