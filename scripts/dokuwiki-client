@@ -80,7 +80,7 @@ list the entries of a namespace
 
 =cut
 
-sub ids_of { map { $$_{id} } @{ (shift) } }   
+sub ids_of (_) { map { $$_{id} } @{ (shift)  } }   
 sub _ls    { ids_of getPagelist $wiki, @_ }
 sub  ls    { say for &_ls }
 
@@ -95,6 +95,33 @@ are shortcuts for
 
 sub page  { show getPage     => @_ } 
 sub html  { show getPageHTML => @_ }
+
+=head2 with
+
+last argument is a code perl that will be evaluted and executed while the
+XML-RPC result is stored as C<$_>. 
+
+examples: 
+
+    dokuwiki-client with getVersion say
+
+
+    dokuwiki-client with search 'restore backup procedure' '
+        say $$_{id} for @$_
+    '
+
+or use C<ids_of>
+
+    dokuwiki-client with search 'restore backup procedure' '
+        say for ids_of
+    '
+moar examples
+
+    dokuwiki-client with getPagelist my:namespace '
+        say for grep /dataviz/, map $$_{id}, @$_ 
+    '
+
+=cut
 
 # untested! maybe a nicer more generic each: 
 # dokuwiki-client each 'print $$_{id} if $$_{id} ~~ /foo/' getPagelist my:namespace 
@@ -114,10 +141,21 @@ sub html  { show getPageHTML => @_ }
 # say for grep /duprej/, find $wiki;
 # my @files = ls $wiki,'/', { depth => 1 };   
 
+sub with {
+    my $code   = pop;
+    my $sub    = eval "sub{$code}";
+    die $@ if $@;
+
+    my $method = shift;
+    $wiki->can( $method ) or die "wiki can't $method";
+    local $_ = $wiki->$method(@_);
+    $sub->( $_ );
+
+}
+
 
 my $cmd = shift or exit;
 my $sub = __PACKAGE__->can( $cmd )
     or die "$cmd isn't a valid command";
 $sub->( @ARGV );
-
 
