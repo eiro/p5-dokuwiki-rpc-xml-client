@@ -1,8 +1,9 @@
 #! /usr/bin/perl
 use Dokuwiki::RPC::XML::Client;
 use Modern::Perl;
+use IO::All -utf8;
 use Net::Netrc;
-require YAML;
+use YAML;
 no warnings qw( once qw );
 
 =head1 SYNOPSIS
@@ -81,8 +82,8 @@ list the entries of a namespace
 =cut
 
 sub ids_of (_) { map { $$_{id} } @{ (shift)  } }   
-sub _ls    { ids_of getPagelist $wiki, @_ }
-sub  ls    { say for &_ls }
+sub _ls        { ids_of $wiki->getPagelist( @_ ) }
+sub ls         { say for &_ls }
 
 =head2 page and html
 
@@ -151,6 +152,12 @@ sub with {
     local $_ = $wiki->$method(@_);
     $sub->( $_ );
 
+}
+
+sub put {
+    my ( $name, $file, %opt ) = @_;
+    my $content = io($file)->all;
+    $wiki->putPage( $name, $content, \%opt ); 
 }
 
 
