@@ -1,7 +1,7 @@
 package Dokuwiki::RPC::XML::Client;
 # ABSTRACT: Dokuwiki::RPC::XML::Client - A RPC::XML::Client for dokuwiki (https://www.dokuwiki.org)
-use strict;
-use warnings;
+use Eirotic;
+use Module::Runtime;
 use parent 'RPC::XML::Client';
 our $VERSION = '0.3';
 our %API = qw<
@@ -62,6 +62,39 @@ sub reach {
         }
     }
 };
+
+sub _bind ($self,%opt) {
+
+    local $_;
+
+    my $wiki = $opt{client} // do {
+
+	$opt{env_bm} and
+	    @opt{qw( url netrc )} =
+		map { $ENV{$_} || "unset environment variable $_" }
+		qw( DOKUWIKI_CLIENT_BASE DOKUWIKI_CLIENT_MACHINE );
+
+	if ($_=$opt{url}) { Dokuwiki::RPC::XML::Client->reach($_) }
+	else {...}
+
+    } or die;
+
+    $_=$opt{netrc} and return do {
+
+	my @credentials =
+	((( Module::Runtime::use_module 'Net::Netrc' )
+	    || die "please install Net::Netrc" )
+	    ->lookup($_)
+	    || die"missing $_ machine in your ~/.netrc")
+	    ->lpa;
+
+	($wiki->login(@credentials[0..1]))
+	|| die"invalid credentials for $_ machine in your ~/.netrc";
+
+	$wiki;
+    };
+    ...
+}
 
 1;
 

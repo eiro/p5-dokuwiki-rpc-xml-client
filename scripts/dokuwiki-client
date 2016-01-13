@@ -1,9 +1,8 @@
 #! /usr/bin/perl
-use Dokuwiki::RPC::XML::Client;
-use Modern::Perl;
-use IO::All -utf8;
+use Eirotic;
 use Net::Netrc;
-use YAML;
+use Dokuwiki::RPC::XML::Client;
+use open qw< :std :utf8 >;
 no warnings qw( once qw );
 
 =head1 SYNOPSIS
@@ -37,11 +36,7 @@ then, setup 2 environement variables
 
 =cut
 
-my $wiki = Dokuwiki::RPC::XML::Client->reach( $ENV{DOKUWIKI_CLIENT_BASE} || die );
-my $credentials = Net::Netrc->lookup( $ENV{DOKUWIKI_CLIENT_MACHINE} || die  )
-    or die "please add a fake $ENV{DW_MACHINE} machine in your ~/.netrc"; 
-my ( $l, $p ) = $credentials->lpa; 
-$wiki->login( $l, $p ) or die;
+my $wiki = Dokuwiki::RPC::XML::Client->_bind( env_bm => 1 );
 
 =head2 call
 
@@ -81,7 +76,7 @@ list the entries of a namespace
 
 =cut
 
-sub ids_of (_) { map { $$_{id} } @{ (shift)  } }   
+sub ids_of :prototype(_) { map { $$_{id} } @{ (shift)  } }   
 sub _ls        { ids_of $wiki->getPagelist( @_ ) }
 sub ls         { say for &_ls }
 
