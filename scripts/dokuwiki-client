@@ -122,6 +122,20 @@ moar examples
         say for grep /dataviz/, map $$_{id}, @$_ 
     '
 
+sort by score 
+
+    dokuwiki-client with search 'restore backup procedure' '
+        say for ids_of
+    '
+
+moar examples
+
+    dokuwiki-client with search 'restore backup procedure' '
+         map { say id_of }
+         sort { $$a{score} <=> $$b{score} }
+         @$_
+    '
+
 =cut
 
 # untested! maybe a nicer more generic each: 
